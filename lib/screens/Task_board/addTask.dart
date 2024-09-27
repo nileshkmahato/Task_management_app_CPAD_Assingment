@@ -62,7 +62,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
               child: const Text('Save Task'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blueAccent,
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                padding: const EdgeInsets.symmetric(vertical: 18),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -75,19 +75,25 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   }
 
   Future<void> _saveTask() async {
-    if (_titleController.text.isEmpty || _dueDate == null) {
-      _showError('Please fill in all fields');
-      return;
-    }
+  final currentUser = await ParseUser.currentUser() as ParseUser?;
 
-    final task = ParseObject('Task')
-      ..set('title', _titleController.text)
-      ..set('dueDate', _dueDate)
-      ..set('done', false);
-    await task.save();
-
-    Navigator.of(context).pop();
+  if (_titleController.text.isEmpty || _dueDate == null) {
+    _showError('Please fill in all fields');
+    return;
   }
+
+  final task = ParseObject('Task')
+    ..set('title', _titleController.text)
+    ..set('dueDate', _dueDate)
+    ..set('done', false)
+    ..set('createdBy', currentUser!.objectId); // Set the user who created the task
+
+  await task.save();
+
+  // Return a result when the task is added
+  Navigator.of(context).pop(true);
+}
+
 
   void _showError(String message) {
     showDialog(

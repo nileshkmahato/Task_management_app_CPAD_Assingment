@@ -13,11 +13,7 @@ class EditTaskScreen extends StatefulWidget {
 class _EditTaskScreenState extends State<EditTaskScreen> {
   TextEditingController? _titleController;
   TextEditingController? _subtitleController;
-  TextEditingController? _objectIdController;
   DateTime selectedDate = DateTime.now();
-
-  final FocusNode _focusTitle = FocusNode();
-  final FocusNode _focusSubtitle = FocusNode();
 
   @override
   void initState() {
@@ -26,18 +22,12 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
       if (taskList.isNotEmpty) {
         final ParseObject task = taskList.first;
         setState(() {
-          _objectIdController =
-              TextEditingController(text: task.get<String>('objectId'));
           _titleController =
               TextEditingController(text: task.get<String>('title'));
           _subtitleController =
               TextEditingController(text: task.get<String>('subtitle'));
-          selectedDate = task.get<DateTime>('selectedDate')!;
+          selectedDate = task.get<DateTime>('dueDate')!;
         });
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Task not found!")),
-        );
       }
     });
   }
@@ -50,21 +40,18 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
         centerTitle: true,
         backgroundColor: Colors.blueAccent,
       ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildTitleField(),
-              const SizedBox(height: 20),
-              _buildSubtitleField(),
-              const SizedBox(height: 20),
-              _buildDateSelector(context),
-              const SizedBox(height: 40),
-              _buildActionButtons()
-            ],
-          ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            _buildTitleField(),
+            const SizedBox(height: 20),
+            _buildSubtitleField(),
+            const SizedBox(height: 20),
+            _buildDateSelector(context),
+            const SizedBox(height: 40),
+            _buildActionButtons()
+          ],
         ),
       ),
     );
@@ -73,8 +60,6 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
   Widget _buildTitleField() {
     return TextField(
       controller: _titleController,
-      focusNode: _focusTitle,
-      style: const TextStyle(fontSize: 18, color: Colors.black),
       decoration: InputDecoration(
         labelText: 'Task Title',
         filled: true,
@@ -94,9 +79,7 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
   Widget _buildSubtitleField() {
     return TextField(
       controller: _subtitleController,
-      focusNode: _focusSubtitle,
       maxLines: 3,
-      style: const TextStyle(fontSize: 18, color: Colors.black),
       decoration: InputDecoration(
         labelText: 'Task Description',
         filled: true,
@@ -156,18 +139,10 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
         ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.blue,
-            minimumSize: const Size(170, 48),
-          ),
           onPressed: () async {
             if (_titleController != null && _titleController!.text.isNotEmpty) {
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                content: Text("Task updated successfully!"),
-                duration: Duration(seconds: 3),
-              ));
               await _updateTask(
-                _objectIdController!.text,
+                widget.taskId,
                 _titleController!.text,
                 _subtitleController!.text,
                 selectedDate,
@@ -177,51 +152,48 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
                 MaterialPageRoute(builder: (context) => const TaskDashboard()),
               );
             } else {
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                content: Text("Title cannot be empty!"),
-                duration: Duration(seconds: 5),
-              ));
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Title cannot be empty!")),
+              );
             }
           },
-          child: const Text(
-            'Update Task',
-            style: TextStyle(color: Colors.white),
+          child: const Text('Update Task'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.blueAccent,
+            padding: const EdgeInsets.symmetric(vertical: 16),
           ),
         ),
         ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.red,
-            minimumSize: const Size(170, 48),
-          ),
           onPressed: () {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => const TaskDashboard()),
             );
           },
-          child: const Text(
-            'Cancel',
-            style: TextStyle(color: Colors.white),
+          child: const Text('Cancel'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.redAccent,
+            padding: const EdgeInsets.symmetric(vertical: 16),
           ),
         ),
       ],
     );
   }
 
-  Future<void> _updateTask(
-      String taskId, String title, String subtitle, DateTime selectedDate) async {
-    var task = ParseObject('Todo')
+  Future<void> _updateTask(String taskId, String title, String subtitle,
+      DateTime selectedDate) async {
+    var task = ParseObject('Task')
       ..objectId = taskId
       ..set('title', title)
       ..set('subtitle', subtitle)
-      ..set('selectedDate', selectedDate)
+      ..set('dueDate', selectedDate)
       ..set('done', false);
     await task.save();
   }
 
   Future<List<ParseObject>> _loadTask(String taskId) async {
-    QueryBuilder<ParseObject> query = QueryBuilder(ParseObject('Todo'))
-      ..whereEqualTo('objectId', taskId);
+    QueryBuilder<ParseObject> query =
+        QueryBuilder(ParseObject('Task'))..whereEqualTo('objectId', taskId);
 
     final ParseResponse apiResponse = await query.query();
 

@@ -18,47 +18,55 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[200],
-      appBar: AppBar(
-        title: const Text('QuickTask Manager'),
-        centerTitle: true,
-        backgroundColor: Colors.blueAccent,
-      ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                const Icon(
-                  Icons.task_alt,
-                  color: Colors.blueAccent,
-                  size: 100,
-                ),
-                const SizedBox(height: 20),
-                _buildTextField(
-                    controller: _usernameController, label: 'Username'),
-                const SizedBox(height: 12),
-                _buildTextField(
-                    controller: _passwordController,
-                    label: 'Password',
-                    obscureText: true),
-                const SizedBox(height: 16),
-                _buildLoginButton(),
-                const SizedBox(height: 20),
-                _buildRegisterText(context),
-              ],
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: Image.asset(
+              'lib/assets/background.jpg', 
+              fit: BoxFit.cover,
             ),
           ),
-        ),
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    const Icon(
+                      Icons.task_alt,
+                      color: Colors.blueAccent,
+                      size: 100,
+                    ),
+                    const SizedBox(height: 20),
+                    _buildTextField(
+                      controller: _usernameController,
+                      label: 'Username',
+                    ),
+                    const SizedBox(height: 12),
+                    _buildTextField(
+                      controller: _passwordController,
+                      label: 'Password',
+                      obscureText: true,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildLoginButton(),
+                    const SizedBox(height: 20),
+                    _buildRegisterText(context),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildTextField(
-      {required TextEditingController controller,
-      required String label,
-      bool obscureText = false}) {
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    bool obscureText = false,
+  }) {
     return TextField(
       controller: controller,
       obscureText: obscureText,
@@ -101,10 +109,14 @@ class _LoginPageState extends State<LoginPage> {
         TextButton(
           onPressed: () {
             Navigator.push(
-                context, MaterialPageRoute(builder: (context) => RegisterPage()));
+              context,
+              MaterialPageRoute(builder: (context) => RegisterPage()),
+            );
           },
-          child: const Text('Register',
-              style: TextStyle(color: Colors.blueAccent)),
+          child: const Text(
+            'Register',
+            style: TextStyle(color: Colors.blueAccent),
+          ),
         ),
       ],
     );
