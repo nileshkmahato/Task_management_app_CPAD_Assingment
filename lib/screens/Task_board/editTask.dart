@@ -2,42 +2,42 @@ import 'package:flutter/material.dart';
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 import 'package:task_management_app/screens/Task_board/task_dashboard.dart';
 
-class Edit_Screen extends StatefulWidget {
-  final String _todo;
-  const Edit_Screen(this._todo, {super.key});
+class EditTaskScreen extends StatefulWidget {
+  final String taskId;
+  const EditTaskScreen(this.taskId, {super.key});
 
   @override
-  State<Edit_Screen> createState() => _Edit_ScreenState();
+  State<EditTaskScreen> createState() => _EditTaskScreenState();
 }
 
-class _Edit_ScreenState extends State<Edit_Screen> {
-  TextEditingController? title;
-  TextEditingController? subtitle;
-  // TextEditingController? selectedDate;
-  TextEditingController? objectId;
-
-  final FocusNode _focusNode1 = FocusNode();
-  final FocusNode _focusNode2 = FocusNode();
-  int indexx = 0;
+class _EditTaskScreenState extends State<EditTaskScreen> {
+  TextEditingController? _titleController;
+  TextEditingController? _subtitleController;
+  TextEditingController? _objectIdController;
   DateTime selectedDate = DateTime.now();
+
+  final FocusNode _focusTitle = FocusNode();
+  final FocusNode _focusSubtitle = FocusNode();
 
   @override
   void initState() {
     super.initState();
-    getTodoByID(widget._todo).then((List<ParseObject> todoList) {
-      if (todoList.isNotEmpty) {
-        final ParseObject todo = todoList.first;
+    _loadTask(widget.taskId).then((List<ParseObject> taskList) {
+      if (taskList.isNotEmpty) {
+        final ParseObject task = taskList.first;
         setState(() {
-          objectId = TextEditingController(text: todo.get<String>('objectId'));
-          title = TextEditingController(text: todo.get<String>('title'));
-          subtitle = TextEditingController(text: todo.get<String>('subtitle'));
-          // selectedDate = TextEditingController(
-          //   text: todo.get<DateTime>('selectedDate').toString(),
-          // );
+          _objectIdController =
+              TextEditingController(text: task.get<String>('objectId'));
+          _titleController =
+              TextEditingController(text: task.get<String>('title'));
+          _subtitleController =
+              TextEditingController(text: task.get<String>('subtitle'));
+          selectedDate = task.get<DateTime>('selectedDate')!;
         });
       } else {
-        // Handle case where todo item with the given ID is not found
-        print('Todo item not found');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Task not found!")),
+        );
       }
     });
   }
@@ -46,167 +46,79 @@ class _Edit_ScreenState extends State<Edit_Screen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Task Management Tool'),
+        title: const Text('Edit Task'),
         centerTitle: true,
+        backgroundColor: Colors.blueAccent,
       ),
       body: SafeArea(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            title_widgets(),
-            const SizedBox(height: 20),
-            subtite_wedgite(),
-            const SizedBox(height: 20),
-            dateSelecter(context),
-            const SizedBox(height: 40),
-            button()
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget button() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.blue,
-            minimumSize: const Size(170, 48),
-          ),
-          onPressed: () async {
-            if (title != null) {
-              // Check if the title text field is not empty
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                content: Text("Task edited"),
-                duration: Duration(seconds: 3),
-              ));
-              await updateTodo(objectId!.text, title!.text, subtitle!.text,
-                  selectedDate); // Call saveTodo with text values
-              // to redirect
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) =>
-                        const Home_Screen()), // Navigate to RegisterPage
-              );
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                content: Text("Title Cannot be Empty"),
-                duration: Duration(seconds: 5),
-              ));
-            }
-          },
-          child: const Text(
-            'Edit Task',
-            style: TextStyle(
-              color: Colors.white, // Set the text color here
-            ),
-          ),
-        ),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.red,
-            minimumSize: const Size(170, 48),
-          ),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) =>
-                      const Home_Screen()), // Navigate to RegisterPage
-            );
-          },
-          child: const Text(
-            'Cancel',
-            style: TextStyle(
-              color: Colors.white, // Set the text color here
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget title_widgets() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 15),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(15),
-        ),
-        child: TextField(
-          controller: title,
-          focusNode: _focusNode1,
-          style: const TextStyle(fontSize: 18, color: Colors.black),
-          decoration: InputDecoration(
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-              hintText: 'title',
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(
-                  color: Color(0xffc5c5c5),
-                  width: 2.0,
-                ),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(
-                  color: Colors.blue,
-                  width: 2.0,
-                ),
-              )),
-        ),
-      ),
-    );
-  }
-
-  Padding subtite_wedgite() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 15),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(15),
-        ),
-        child: TextField(
-          maxLines: 3,
-          controller: subtitle,
-          focusNode: _focusNode2,
-          style: const TextStyle(fontSize: 18, color: Colors.black),
-          decoration: InputDecoration(
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-            hintText: 'subtitle',
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(
-                color: Color(0xffc5c5c5),
-                width: 2.0,
-              ),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(
-                color: Colors.blue,
-                width: 2.0,
-              ),
-            ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildTitleField(),
+              const SizedBox(height: 20),
+              _buildSubtitleField(),
+              const SizedBox(height: 20),
+              _buildDateSelector(context),
+              const SizedBox(height: 40),
+              _buildActionButtons()
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget dateSelecter(BuildContext context) {
+  Widget _buildTitleField() {
+    return TextField(
+      controller: _titleController,
+      focusNode: _focusTitle,
+      style: const TextStyle(fontSize: 18, color: Colors.black),
+      decoration: InputDecoration(
+        labelText: 'Task Title',
+        filled: true,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: Colors.blueAccent, width: 2.0),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: Colors.blue, width: 2.0),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSubtitleField() {
+    return TextField(
+      controller: _subtitleController,
+      focusNode: _focusSubtitle,
+      maxLines: 3,
+      style: const TextStyle(fontSize: 18, color: Colors.black),
+      decoration: InputDecoration(
+        labelText: 'Task Description',
+        filled: true,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: Colors.blueAccent, width: 2.0),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: Colors.blue, width: 2.0),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDateSelector(BuildContext context) {
     Future<void> selectDate() async {
       final DateTime? pickedDate = await showDatePicker(
         context: context,
         initialDate: selectedDate,
-        firstDate: DateTime(2024),
+        firstDate: DateTime.now(),
         lastDate: DateTime(2100),
       );
       if (pickedDate != null && pickedDate != selectedDate) {
@@ -216,64 +128,107 @@ class _Edit_ScreenState extends State<Edit_Screen> {
       }
     }
 
-    return Padding(
-      padding:
-          const EdgeInsets.symmetric(horizontal: 20), // Add horizontal padding
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Text(
-                'Due Date:',
-                style: TextStyle(fontSize: 18),
-              ),
-              const SizedBox(width: 10), // Add spacing between text and date
-              Text(
-                '${selectedDate.day}/${selectedDate.month}/${selectedDate.year}',
-                style:
-                    const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(width: 20), // Add spacing between text and date
-
-              ElevatedButton(
-                onPressed: () => selectDate(),
-                child: const Text('Change Date'),
-              ),
-            ],
+    return Row(
+      children: [
+        const Text(
+          'Due Date:',
+          style: TextStyle(fontSize: 18),
+        ),
+        const SizedBox(width: 10),
+        Text(
+          '${selectedDate.day}/${selectedDate.month}/${selectedDate.year}',
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(width: 20),
+        ElevatedButton(
+          onPressed: () => selectDate(),
+          child: const Text('Change Date'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.blueAccent,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
-}
 
-Future<void> updateTodo(
-    String _todo, String title, String subtitle, DateTime selectedDate) async {
-  print(_todo);
-  var todo = ParseObject('Todo')
-    ..objectId = _todo
-    ..set('title', title)
-    ..set('subtitle', subtitle)
-    ..set('selectedDate', selectedDate)
-    ..set('done', false);
-  await todo.save();
-}
-
-Future<List<ParseObject>> getTodoByID(_todo) async {
-  QueryBuilder<ParseObject> queryTodo =
-      QueryBuilder<ParseObject>(ParseObject('Todo'));
-
-  if (_todo != null) {
-    // If ID is provided, query for a specific todo item
-    queryTodo.whereEqualTo('objectId', _todo);
+  Widget _buildActionButtons() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.blue,
+            minimumSize: const Size(170, 48),
+          ),
+          onPressed: () async {
+            if (_titleController != null && _titleController!.text.isNotEmpty) {
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                content: Text("Task updated successfully!"),
+                duration: Duration(seconds: 3),
+              ));
+              await _updateTask(
+                _objectIdController!.text,
+                _titleController!.text,
+                _subtitleController!.text,
+                selectedDate,
+              );
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const TaskDashboard()),
+              );
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                content: Text("Title cannot be empty!"),
+                duration: Duration(seconds: 5),
+              ));
+            }
+          },
+          child: const Text(
+            'Update Task',
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.red,
+            minimumSize: const Size(170, 48),
+          ),
+          onPressed: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const TaskDashboard()),
+            );
+          },
+          child: const Text(
+            'Cancel',
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
+      ],
+    );
   }
 
-  final ParseResponse apiResponse = await queryTodo.query();
+  Future<void> _updateTask(
+      String taskId, String title, String subtitle, DateTime selectedDate) async {
+    var task = ParseObject('Todo')
+      ..objectId = taskId
+      ..set('title', title)
+      ..set('subtitle', subtitle)
+      ..set('selectedDate', selectedDate)
+      ..set('done', false);
+    await task.save();
+  }
 
-  if (apiResponse.success && apiResponse.results != null) {
-    return apiResponse.results as List<ParseObject>;
-  } else {
-    return [];
+  Future<List<ParseObject>> _loadTask(String taskId) async {
+    QueryBuilder<ParseObject> query = QueryBuilder(ParseObject('Todo'))
+      ..whereEqualTo('objectId', taskId);
+
+    final ParseResponse apiResponse = await query.query();
+
+    if (apiResponse.success && apiResponse.results != null) {
+      return apiResponse.results as List<ParseObject>;
+    } else {
+      return [];
+    }
   }
 }

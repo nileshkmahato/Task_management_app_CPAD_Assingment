@@ -11,212 +11,143 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final controllerUsername = TextEditingController();
-  final controllerPassword = TextEditingController();
-  bool isLoggedIn = false;
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Text('Task Management Tool'),
-          centerTitle: true,
-        ),
-        body: Center(
+      backgroundColor: Colors.grey[200],
+      appBar: AppBar(
+        title: const Text('QuickTask Manager'),
+        centerTitle: true,
+        backgroundColor: Colors.blueAccent,
+      ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(8),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                SizedBox(
-                  height: 300,
-                  child: Image.network(
-                      'https://thumbs.dreamstime.com/z/cartoon-character-calm-businessman-colorful-vector-illustration-business-sitting-calmly-his-desk-doing-yoga-37465327.jpg?ct=jpeg'),
+                const Icon(
+                  Icons.task_alt,
+                  color: Colors.blueAccent,
+                  size: 100,
                 ),
-                const Center(
-                  child: Text('Designed by Ashiana_boy',
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                ),
-                const SizedBox(
-                  height: 16,
-                ),
-                const Center(
-                  child:
-                      Text('User Login', style: TextStyle(fontSize: 16)),
-                ),
-                const SizedBox(
-                  height: 16,
-                ),
-                TextField(
-                  controller: controllerUsername,
-                  enabled: !isLoggedIn,
-                  keyboardType: TextInputType.text,
-                  textCapitalization: TextCapitalization.none,
-                  autocorrect: false,
-                  decoration: const InputDecoration(
-                      border: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.black)),
-                      labelText: 'Username'),
-                ),
-                const SizedBox(
-                  height: 8,
-                ),
-                TextField(
-                  controller: controllerPassword,
-                  enabled: !isLoggedIn,
-                  obscureText: true,
-                  keyboardType: TextInputType.text,
-                  textCapitalization: TextCapitalization.none,
-                  autocorrect: false,
-                  decoration: const InputDecoration(
-                      border: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.black)),
-                      labelText: 'Password'),
-                ),
-                const SizedBox(
-                  height: 16,
-                ),
-                SizedBox(
-                  height: 50,
-                  child: TextButton(
-                    style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all<Color>(Colors
-                          .blue), // Change the color to your desired color
-                    ),
-                    onPressed: isLoggedIn ? null : () => doUserLogin(),
-                    child: const Text(
-                      'Login',
-                      style: TextStyle(
-                        color: Colors
-                            .white, // Change the text color to your desired color
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(
-                  height: 16,
-                ),
-                // Container(
-                //   height: 50,
-                //   child: TextButton(
-                //     child: const Text('Logout'),
-                //     onPressed: !isLoggedIn ? null : () => doUserLogout(),
-                //   ),
-                // )
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      'New to App?',
-                      style: TextStyle(
-                        fontSize: 16,
-                        // Define your text style here
-                      ),
-                    ),
-                    SizedBox(
-                      height: 50,
-                      width: 120,
-                      child: TextButton(
-                        onPressed: () => redirectRegister(context),
-                        child: const Text(
-                          'Register Here',
-                          style: TextStyle(
-                            color: Colors.blue,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                const SizedBox(height: 20),
+                _buildTextField(
+                    controller: _usernameController, label: 'Username'),
+                const SizedBox(height: 12),
+                _buildTextField(
+                    controller: _passwordController,
+                    label: 'Password',
+                    obscureText: true),
+                const SizedBox(height: 16),
+                _buildLoginButton(),
+                const SizedBox(height: 20),
+                _buildRegisterText(context),
               ],
             ),
           ),
-        ));
-  }
-
-  void showSuccess(String message) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Success!"),
-          content: Text(message),
-          actions: <Widget>[
-            TextButton(
-              child: const Text("OK"),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) =>
-                          const Home_Screen()), // Navigate to RegisterPage
-                );
-              },
-            ),
-          ],
-        );
-      },
+        ),
+      ),
     );
   }
 
-  void showError(String errorMessage) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Error!"),
-          content: Text(errorMessage),
-          actions: <Widget>[
-            TextButton(
-              child: const Text("OK"),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
+  Widget _buildTextField(
+      {required TextEditingController controller,
+      required String label,
+      bool obscureText = false}) {
+    return TextField(
+      controller: controller,
+      obscureText: obscureText,
+      decoration: InputDecoration(
+        labelText: label,
+        filled: true,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Colors.blueAccent),
+        ),
+      ),
     );
   }
 
-  void doUserLogin() async {
-    final username = controllerUsername.text.trim();
-    final password = controllerPassword.text.trim();
+  Widget _buildLoginButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: _isLoading ? null : _doLogin,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.blueAccent,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+        child: _isLoading
+            ? const CircularProgressIndicator(color: Colors.white)
+            : const Text('Login', style: TextStyle(fontSize: 18)),
+      ),
+    );
+  }
+
+  Widget _buildRegisterText(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Text("Don't have an account?"),
+        TextButton(
+          onPressed: () {
+            Navigator.push(
+                context, MaterialPageRoute(builder: (context) => RegisterPage()));
+          },
+          child: const Text('Register',
+              style: TextStyle(color: Colors.blueAccent)),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _doLogin() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    final username = _usernameController.text.trim();
+    final password = _passwordController.text.trim();
 
     final user = ParseUser(username, password, null);
-
     var response = await user.login();
 
+    setState(() {
+      _isLoading = false;
+    });
+
     if (response.success) {
-      showSuccess("User was successfully login!");
-      setState(() {
-        isLoggedIn = true;
-      });
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const TaskDashboard()),
+      );
     } else {
-      showError(response.error!.message);
+      _showError(response.error!.message);
     }
   }
 
-  void doUserLogout() async {
-    final user = await ParseUser.currentUser() as ParseUser;
-    var response = await user.logout();
-    if (response.success) {
-      showSuccess("User was successfully logout!");
-      setState(() {
-        isLoggedIn = false;
-      });
-    } else {
-      showError(response.error!.message);
-    }
+  void _showError(String message) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Login Failed"),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text("OK"),
+          ),
+        ],
+      ),
+    );
   }
-}
-
-void redirectRegister(BuildContext context) async {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-        builder: (context) => const RegisterPage()), // Navigate to RegisterPage
-  );
 }

@@ -1,190 +1,154 @@
 import 'package:flutter/material.dart';
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
-import 'package:task_management_app/screens/Auth/login.dart';
+import 'package:task_management_app/screens/Task_board/task_dashboard.dart';
 
 class RegisterPage extends StatefulWidget {
-  const RegisterPage({super.key});
-
   @override
   _RegisterPageState createState() => _RegisterPageState();
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-  final controllerUsername = TextEditingController();
-  final controllerPassword = TextEditingController();
-  final controllerConfirmPassword = TextEditingController();
-  final controllerEmail = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Text('Task Management Tool'),
-          centerTitle: true,
-        ),
-        body: Center(
+      backgroundColor: Colors.grey[200],
+      appBar: AppBar(
+        title: const Text('Register'),
+        centerTitle: true,
+        backgroundColor: Colors.blueAccent,
+      ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(8),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                SizedBox(
-                  height: 300,
-                  child: Image.network(
-                      'https://thumbs.dreamstime.com/z/cartoon-character-calm-businessman-colorful-vector-illustration-business-sitting-calmly-his-desk-doing-yoga-37465327.jpg?ct=jpeg'),
+                const Icon(
+                  Icons.person_add_alt_1,
+                  color: Colors.blueAccent,
+                  size: 100,
                 ),
-                const Center(
-                  child: Text('Designed by Ashiana_boy',
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                ),
-                const SizedBox(
-                  height: 16,
-                ),
-                const Center(
-                  child:
-                      Text('User Registration', style: TextStyle(fontSize: 16)),
-                ),
-                const SizedBox(
-                  height: 16,
-                ),
-                TextField(
-                  controller: controllerUsername,
-                  keyboardType: TextInputType.text,
-                  textCapitalization: TextCapitalization.none,
-                  autocorrect: false,
-                  decoration: const InputDecoration(
-                      border: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.black)),
-                      labelText: 'Username'),
-                ),
-                const SizedBox(
-                  height: 8,
-                ),
-                TextField(
-                  controller: controllerEmail,
-                  keyboardType: TextInputType.emailAddress,
-                  textCapitalization: TextCapitalization.none,
-                  autocorrect: false,
-                  decoration: const InputDecoration(
-                      border: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.black)),
-                      labelText: 'E-mail'),
-                ),
-                const SizedBox(
-                  height: 8,
-                ),
-                TextField(
-                  controller: controllerPassword,
-                  obscureText: true,
-                  keyboardType: TextInputType.text,
-                  textCapitalization: TextCapitalization.none,
-                  autocorrect: false,
-                  decoration: const InputDecoration(
-                      border: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.black)),
-                      labelText: 'Password'),
-                ),
-                const SizedBox(
-                  height: 8,
-                ),
-                TextField(
-                  controller: controllerConfirmPassword,
-                  obscureText: true,
-                  keyboardType: TextInputType.text,
-                  textCapitalization: TextCapitalization.none,
-                  autocorrect: false,
-                  decoration: const InputDecoration(
-                      border: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.black)),
-                      labelText: 'Confirm Password'),
-                ),
-                const SizedBox(
-                  height: 8,
-                ),
-                SizedBox(
-                  height: 50,
-                  child: TextButton(
-                    style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all<Color>(Colors
-                          .blue), // Change the color to your desired color
-                    ),
-                    child: const Text(
-                      'Sign Up',
-                      style: TextStyle(
-                        color: Colors
-                            .white, // Change the text color to your desired color
-                      ),
-                    ),
-                    onPressed: () => doUserRegistration(),
-                  ),
-                )
+                const SizedBox(height: 20),
+                _buildTextField(
+                    controller: _usernameController, label: 'Username'),
+                const SizedBox(height: 12),
+                _buildTextField(
+                    controller: _emailController, label: 'Email'),
+                const SizedBox(height: 12),
+                _buildTextField(
+                    controller: _passwordController,
+                    label: 'Password',
+                    obscureText: true),
+                const SizedBox(height: 16),
+                _buildRegisterButton(),
+                const SizedBox(height: 20),
+                _buildLoginText(context),
               ],
             ),
           ),
-        ));
-  }
-
-  void showSuccess() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Success!"),
-          content: const Text("User was successfully created!"),
-          actions: <Widget>[
-            TextButton(
-              child: const Text("Redirect to login"),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) =>
-                          const LoginPage()), // Navigate to RegisterPage
-                );
-              },
-            ),
-          ],
-        );
-      },
+        ),
+      ),
     );
   }
 
-  void showError(String errorMessage) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Error!"),
-          content: Text(errorMessage),
-          actions: <Widget>[
-            TextButton(
-              child: const Text("OK"),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
+  Widget _buildTextField(
+      {required TextEditingController controller,
+      required String label,
+      bool obscureText = false}) {
+    return TextField(
+      controller: controller,
+      obscureText: obscureText,
+      decoration: InputDecoration(
+        labelText: label,
+        filled: true,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Colors.blueAccent),
+        ),
+      ),
     );
   }
 
-  void doUserRegistration() async {
-    final username = controllerUsername.text.trim();
-    final email = controllerEmail.text.trim();
-    final password = controllerPassword.text.trim();
-    final confirmPassword = controllerConfirmPassword.text.trim();
-    if (password == confirmPassword) {
-      final user = ParseUser.createUser(username, password, email);
-      var response = await user.signUp();
-      if (response.success) {
-        showSuccess();
-      } else {
-        showError(response.error!.message);
-      }
+  Widget _buildRegisterButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: _isLoading ? null : _doRegister,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.blueAccent,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+        child: _isLoading
+            ? const CircularProgressIndicator(color: Colors.white)
+            : const Text('Register', style: TextStyle(fontSize: 18)),
+      ),
+    );
+  }
+
+  Widget _buildLoginText(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Text("Already have an account?"),
+        TextButton(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          child: const Text('Login',
+              style: TextStyle(color: Colors.blueAccent)),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _doRegister() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    final username = _usernameController.text.trim();
+    final password = _passwordController.text.trim();
+    final email = _emailController.text.trim();
+
+    final user = ParseUser(username, password, email);
+    var response = await user.signUp();
+
+    setState(() {
+      _isLoading = false;
+    });
+
+    if (response.success) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const TaskDashboard()),
+      );
     } else {
-      showError("Password and Confirm Password must be match");
+      _showError(response.error!.message);
     }
+  }
+
+  void _showError(String message) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Registration Failed"),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text("OK"),
+          ),
+        ],
+      ),
+    );
   }
 }

@@ -10,12 +10,12 @@ void main() async {
   const String clientKey = 'hqyr3sb2l3RqI02lQbXlKUXJ4wm1ytEXaSX7bLZP';
   const parseServerUrl = 'https://parseapi.back4app.com';
 
-  // The corrected initialize method call with positional arguments
+  
   await Parse().initialize(
     appId,
     parseServerUrl, 
-    clientKey: clientKey, // Server URL as a positional argument, not named
-    autoSendSessionId: true, // Named argument for session handling
+    clientKey: clientKey, 
+    autoSendSessionId: true, 
   );
 
   runApp(MyApp());
@@ -28,8 +28,9 @@ class MyApp extends StatelessWidget {
       title: 'Task Management App',
       theme: ThemeData(
         primarySwatch: Colors.blue,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home:  const LoginPage(),
+      home: const LoginPage(),
     );
   }
 }
