@@ -6,8 +6,8 @@ import 'package:task_management_app/screens/Auth/login.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  const String appId = 'v7zpkflR9x2sPpTUv9Tdmpc0vPFTRXndQUhs7okd';
-  const String clientKey = 'hqyr3sb2l3RqI02lQbXlKUXJ4wm1ytEXaSX7bLZP';
+  const String appId = 'YOUR_APPId';
+  const String clientKey = 'YOUR_CLIENTKEY';
   const parseServerUrl = 'https://parseapi.back4app.com';
 
   
